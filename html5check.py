@@ -228,10 +228,13 @@ if status != 200:
 if response.getheader('Content-Encoding', 'identity').lower() == 'gzip':
   response = gzip.GzipFile(fileobj=BytesIO(response.read()))
 
+errors = 0
 if fileName and gnu:
   quotedName = '"%s"' % fileName.replace("'", '\\042')
   for line in response.read().split('\n'):
     if line:
+      if ' error: ' in line:
+        errors += 1
       sys.stdout.write(quotedName)
       sys.stdout.write(line + '\n')
 else:
@@ -242,3 +245,7 @@ else:
   sys.stdout.write(output)
 
 connection.close()
+
+if errors:
+  sys.stdout.write('analyzed file had at least %d errors\n' % errors)
+  exit(1)
